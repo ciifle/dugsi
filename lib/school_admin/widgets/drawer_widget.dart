@@ -8,6 +8,7 @@ import 'package:kobac/school_admin/pages/school_admin_screen.dart';
 import 'package:kobac/school_admin/pages/settings_page.dart';
 import 'package:kobac/school_admin/pages/subjects_screen.dart';
 import 'package:kobac/shared/pages/login_screen.dart';
+import 'package:kobac/services/local_auth_service.dart';
 
 
 class AppDrawer extends StatelessWidget {
@@ -189,13 +190,13 @@ class AppDrawer extends StatelessWidget {
                       icon: Icons.logout_rounded,
                       label: 'Logout',
                       isLogout: true,
-                      onTap: () {
-                        Navigator.of(context).pop();
-        Future.delayed(const Duration(milliseconds: 250), () {
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => LoginPage()));
-        });
+                      onTap: () async {
+                        await LocalAuthService().logout();
+                        if (!context.mounted) return;
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (_) => const LoginPage()),
+                          (route) => false,
+                        );
                       },
                     ),
                   )

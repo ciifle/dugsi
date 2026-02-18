@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../shared/services/auth_service.dart';
-import '../../shared/services/school_service.dart';
+import 'package:kobac/services/local_auth_service.dart';
+import 'package:kobac/services/dummy_school_service.dart';
 
 // ===== Color Constants =====
 const Color kDarkBlue = Color(0xFF023471);
@@ -28,7 +28,7 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
   String? _errorMessage;
 
   Future<Map<String, String>?> _loadAdminData() async {
-    final user = await AuthService().getCurrentUser();
+    final user = await LocalAuthService().getCurrentUser();
 
     if (user == null) {
       setState(() {
@@ -41,7 +41,7 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
 
     // Initialize fields from user (email fallback logic preserved)
     String adminName = user.name ?? '';
-    String adminRole = user.role?.name ?? '';
+    String adminRole = user.role.toString().split('.').last;
     String adminEmail = user.email ?? user.emisNumber ?? '';
     String adminPhone = user.phone ?? '';
     String adminJoined = ''; // No info yet
@@ -57,9 +57,9 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
     // Try to load school data if user.schoolId is provided
     if (user.schoolId != null) {
       try {
-        final school = await SchoolService().getSchoolById(
+        final school = await DummySchoolService().getSchoolById(
           user.schoolId!,
-        ); // ✅ FIX
+        );
         if (school != null) {
           schoolName = school.name ?? '';
           schoolEmail = school.email ?? '';

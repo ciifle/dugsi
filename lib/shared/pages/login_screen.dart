@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:kobac/school_admin/pages/school_admin_screen.dart';
 import 'package:kobac/student/pages/student_dashboard.dart';
 import 'package:kobac/teacher/pages/teacher_dashboard.dart';
-import 'package:kobac/shared/services/auth_service.dart';
+import 'package:kobac/services/local_auth_service.dart';
+import 'package:kobac/models/dummy_user.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -67,6 +68,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     super.dispose();
   }
 
+
   Future<void> _login(BuildContext context) async {
     setState(() {
       _loginError = null;
@@ -76,27 +78,15 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     final identifier = _emailController.text.trim();
     final password = _passwordController.text;
 
-    AuthResult result;
-    try {
-      result = await AuthService().login(
-        identifier: identifier,
-        password: password, 
-      );
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _loginError = 'An unexpected error occurred. Please try again.';
-      });
-      return;
-    }
+    final user = await LocalAuthService().login(identifier, password);
 
     setState(() {
       _isLoading = false;
     });
 
-    if (result.success) {
+    if (user != null) {
       Widget targetScreen;
-      switch (result.role) {
+      switch (user.role) {
         case UserRole.schoolAdmin:
           targetScreen = const SchoolAdminScreen();
           break;
@@ -105,6 +95,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           break;
         case UserRole.student:
           targetScreen = StudentDashboardScreen();
+          break;
+        case UserRole.parent: // Added parent handling
+          targetScreen = const Scaffold(body: Center(child: Text("Parent Dashboard Placeholder"))); // TODO: Create Parent Dashboard
           break;
         default:
           setState(() {
@@ -117,10 +110,11 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       ).pushReplacement(MaterialPageRoute(builder: (_) => targetScreen));
     } else {
       setState(() {
-        _loginError = result.message;
+        _loginError = 'Invalid email or password.';
       });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'admin_student_screen.dart';
-import 'package:kobac/shared/services/school_service.dart';
+import 'package:kobac/services/dummy_school_service.dart';
+import 'package:kobac/models/dummy_user.dart';
 
 // Color constants
 const Color kPrimaryAccent = Color(0xFF5AB04B);
@@ -30,7 +31,7 @@ class AdminStudentsScreen extends StatefulWidget {
 }
 
 class _AdminStudentsScreenState extends State<AdminStudentsScreen> {
-  late Future<List<AppUser>> _studentsFuture;
+  late Future<List<DummyUser>> _studentsFuture;
   String searchQuery = '';
 
   @override
@@ -39,17 +40,17 @@ class _AdminStudentsScreenState extends State<AdminStudentsScreen> {
     _studentsFuture = _loadStudents();
   }
 
-  Future<List<AppUser>> _loadStudents() async {
-    final users = await SchoolService().getAllUsersForAdmin();
+  Future<List<DummyUser>> _loadStudents() async {
+    final users = await DummySchoolService().getAllUsersForAdmin();
     // filter for students only
-    return users.where((user) => user.role.toUpperCase() == "STUDENT").toList();
+    return users.where((user) => user.role == UserRole.student).toList();
   }
 
-  List<AppUser> _filterStudents(List<AppUser> students) {
+  List<DummyUser> _filterStudents(List<DummyUser> students) {
     if (searchQuery.isEmpty) return students;
     return students
         .where((student) =>
-            student.fullName.toLowerCase().contains(searchQuery.toLowerCase()) ||
+            student.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
             student.email.toLowerCase().contains(searchQuery.toLowerCase()))
         .toList();
   }
@@ -141,7 +142,7 @@ class _AdminStudentsScreenState extends State<AdminStudentsScreen> {
       ),
       body: Container(
         color: kLightGrey,
-        child: FutureBuilder<List<AppUser>>(
+        child: FutureBuilder<List<DummyUser>>(
           future: _studentsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -171,7 +172,7 @@ class _AdminStudentsScreenState extends State<AdminStudentsScreen> {
                 ),
               );
             } else {
-              List<AppUser> studentList = snapshot.data ?? [];
+              List<DummyUser> studentList = snapshot.data ?? [];
               studentList = _filterStudents(studentList);
 
               return SingleChildScrollView(
@@ -378,7 +379,7 @@ class _AdminStudentsScreenState extends State<AdminStudentsScreen> {
                                   ),
                                 ),
                                 title: Text(
-                                  student.fullName,
+                                  student.name,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w700,
                                     color: kDarkBlue,

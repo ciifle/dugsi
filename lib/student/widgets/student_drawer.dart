@@ -10,7 +10,7 @@ import 'package:kobac/student/pages/student_quizzes.dart';
 import 'package:kobac/student/pages/student_result.dart';
 
 // Add import for AuthService and shared_preferences
-import 'package:kobac/shared/services/auth_service.dart';
+import 'package:kobac/services/local_auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ----------------------- Drawer Widget ------------------------
@@ -130,7 +130,7 @@ class AppDrawer extends StatelessWidget {
         Navigator.of(context).pop();
 
         // 2. Logout logic
-        await AuthService().logout();
+        await LocalAuthService().logout();
         final prefs = await SharedPreferences.getInstance();
         await prefs.clear();
 

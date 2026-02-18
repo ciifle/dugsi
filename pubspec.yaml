@@ -40,7 +40,6 @@ dependencies:
   intl: ^0.20.2
   shared_preferences: ^2.5.4
   fl_chart: ^1.1.1
-  http:
 
 dev_dependencies:
   flutter_test:

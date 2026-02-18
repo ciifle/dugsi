@@ -13,6 +13,7 @@ import 'package:kobac/teacher/pages/teacher_exams.dart';
 import 'package:kobac/teacher/pages/teacher_profile.dart';
 import 'package:kobac/teacher/pages/weakly_schedule.dart';
 import 'package:kobac/teacher/pages/notifications.dart'; // <- Import for notifications screen
+import 'package:kobac/services/local_auth_service.dart';
 
 // =======================
 //  BRAND COLORS (STRICT)
@@ -355,8 +356,9 @@ class _TeacherDrawer extends StatelessWidget {
                   _DrawerItem(
                     icon: Icons.logout_rounded,
                     label: 'Logout',
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      await LocalAuthService().logout();
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                           builder: (context) => LoginPage(),

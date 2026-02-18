@@ -6,8 +6,9 @@ import 'package:kobac/school_admin/pages/notifications_page.dart';
 import 'package:kobac/school_admin/pages/payments_screen.dart';
 import 'package:kobac/school_admin/pages/teachers_screen.dart';
 import 'package:kobac/school_admin/widgets/drawer_widget.dart';
-import 'package:kobac/shared/services/school_service.dart';
-import 'package:kobac/shared/services/auth_service.dart';
+import 'package:kobac/services/dummy_school_service.dart';
+import 'package:kobac/services/local_auth_service.dart';
+import 'package:kobac/models/dummy_user.dart';
 
 class SchoolAdminScreen extends StatefulWidget {
   const SchoolAdminScreen({Key? key}) : super(key: key);
@@ -28,10 +29,10 @@ class _SchoolAdminScreenState extends State<SchoolAdminScreen> {
   }
 
   Future<void> _loadCounts() async {
-    final user = await AuthService().getCurrentUser();
-    if (user != null && user.role == 'SCHOOL_ADMIN') {
-      final studentCount = await SchoolService().getStudentCount();
-      final teacherCount = await SchoolService().getTeacherCount();
+    final user = await LocalAuthService().getCurrentUser();
+    if (user != null && user.role == UserRole.schoolAdmin) {
+      final studentCount = await DummySchoolService().getStudentCount();
+      final teacherCount = await DummySchoolService().getTeacherCount();
       setState(() {
         _studentCount = studentCount;
         _teacherCount = teacherCount;
@@ -45,6 +46,7 @@ class _SchoolAdminScreenState extends State<SchoolAdminScreen> {
       });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

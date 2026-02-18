@@ -1,42 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:kobac/services/local_auth_service.dart';
+import 'package:kobac/models/dummy_user.dart';
+
 import 'package:kobac/shared/pages/splash_screen.dart';
 import 'package:kobac/shared/pages/login_screen.dart';
 
 import 'package:kobac/student/pages/student_dashboard.dart';
 import 'package:kobac/teacher/pages/teacher_dashboard.dart';
 import 'package:kobac/school_admin/pages/school_admin_screen.dart';
+import 'package:kobac/parent/pages/parent_dashboard.dart';
 
 /// =========================
 /// AUTH UTILITIES
 /// =========================
 
 Future<bool> isLoggedIn() async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('token');
-  final expiry = prefs.getInt('tokenExpiry');
-
-  if (token == null || expiry == null) return false;
-
-  final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-
-  if (now < expiry) {
-    return true;
-  } else {
-    await logout();
-    return false;
-  }
+  final user = await LocalAuthService().getCurrentUser();
+  return user != null;
 }
 
 Future<void> logout() async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.remove('token');
-  await prefs.remove('tokenExpiry');
-  await prefs.remove('role');
-  await prefs.remove('userId');
-  await prefs.remove('schoolId');
+  await LocalAuthService().logout();
 }
+
 
 /// =========================
 /// ENTRY POINT
@@ -120,7 +108,7 @@ class RoleRouter extends StatefulWidget {
 }
 
 class _RoleRouterState extends State<RoleRouter> {
-  late Future<String?> _roleFuture;
+  late Future<UserRole?> _roleFuture;
 
   @override
   void initState() {
@@ -128,27 +116,32 @@ class _RoleRouterState extends State<RoleRouter> {
     _roleFuture = _getRole();
   }
 
-  Future<String?> _getRole() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('role');
+  Future<UserRole?> _getRole() async {
+    final user = await LocalAuthService().getCurrentUser();
+    return user?.role;
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<String?>(
+    return FutureBuilder<UserRole?>(
       future: _roleFuture,
       builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const LoginPage();
+        }
+
         if (!snapshot.hasData) {
           return const SplashScreen();
         }
 
         switch (snapshot.data) {
-          case 'STUDENT':
-          case 'PARENT':
+          case UserRole.student:
             return StudentDashboardScreen();
-          case 'TEACHER':
+          case UserRole.parent:
+            return const ParentDashboard();
+          case UserRole.teacher:
             return TeacherDashboardScreen();
-          case 'SCHOOL_ADMIN':
+          case UserRole.schoolAdmin:
             return const SchoolAdminScreen();
           default:
             return const LoginPage();
