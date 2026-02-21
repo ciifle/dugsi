@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 // Brand colors
 const Color kPrimaryColor = Color(0xFF023471);
 const Color kAccentColor = Color(0xFF5AB04B);
-const Color kBackgroundColor = Color(0xFFF8F9FA);
+const Color kBackgroundColor = Color(0xFFF4F6F8);
 const Color kTextColor = Color(0xFF023471);
 
-// UI Sizes
-const double kCardRadius = 14;
-const double kCardElevation = 2.5;
+// UI Sizes - 3D modern
+const double kCardRadius = 24;
+const double kCardElevation = 0;
 const double kSectionSpacing = 28;
 const EdgeInsets kSectionPadding = EdgeInsets.symmetric(vertical: 18);
 
@@ -152,32 +152,16 @@ class _TeacherExamsResultsScreenState extends State<TeacherExamsResultsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: kPrimaryColor,
-        elevation: 1,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Exams & Results',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: Colors.white,
-            letterSpacing: 0.1,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-      ),
       body: SafeArea(
-        // Prevents overflow by allowing vertical scrolling at all times
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: const BouncingScrollPhysics(),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                _ExamsTopBar(onBack: () => Navigator.of(context).maybePop()),
+                const SizedBox(height: 20),
                 // Section 1: Overview Card
                 _ExamResultsOverviewCard(
                   totalExams: _totalExams,
@@ -213,6 +197,52 @@ class _TeacherExamsResultsScreenState extends State<TeacherExamsResultsScreen> {
   }
 }
 
+// ================= TOP BAR (no color, like admin) =================
+
+class _ExamsTopBar extends StatelessWidget {
+  final VoidCallback onBack;
+
+  const _ExamsTopBar({required this.onBack});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: onBack,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(color: kPrimaryColor.withOpacity(0.1), blurRadius: 12, offset: const Offset(0, 4)),
+                ],
+              ),
+              child: Icon(Icons.arrow_back_rounded, color: kPrimaryColor, size: 24),
+            ),
+          ),
+          const SizedBox(width: 16),
+          const Expanded(
+            child: Text(
+              'Exams & Results',
+              style: TextStyle(
+                color: kTextColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ================= OVERRVIEW CARD =================
 
 class _ExamResultsOverviewCard extends StatelessWidget {
@@ -240,14 +270,14 @@ class _ExamResultsOverviewCard extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircleAvatar(
-            backgroundColor: iconColor.withOpacity(0.13),
-            child: Icon(
-              icon,
-              color: iconColor,
-              size: 26,
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [BoxShadow(color: iconColor.withOpacity(0.08), blurRadius: 8, offset: const Offset(0, 2))],
             ),
-            radius: 24,
+            child: Icon(icon, color: iconColor, size: 26),
           ),
           const SizedBox(height: 7),
           Text(
@@ -284,14 +314,15 @@ class _ExamResultsOverviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // All Wrapped in Card to ensure shadow/rounded appearance
-    return Card(
-      elevation: kCardElevation,
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(kCardRadius),
+        boxShadow: [
+          BoxShadow(color: kPrimaryColor.withOpacity(0.12), blurRadius: 18, offset: const Offset(0, 6)),
+          BoxShadow(color: kPrimaryColor.withOpacity(0.06), blurRadius: 34, offset: const Offset(0, 12)),
+        ],
       ),
-      color: Colors.white,
-      shadowColor: kPrimaryColor.withOpacity(0.09),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 8),
         // Use Wrap instead of Row to prevent OVERFLOW
@@ -395,18 +426,18 @@ class _ToggleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? kAccentColor : Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(23),
-        side: selected
-            ? BorderSide(color: kAccentColor, width: 2)
-            : BorderSide(color: kPrimaryColor, width: 1.2),
-      ),
+      color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(23),
+        borderRadius: BorderRadius.circular(20),
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 14),
+          decoration: BoxDecoration(
+            color: selected ? kPrimaryColor : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: selected ? null : Border.all(color: kPrimaryColor.withOpacity(0.25), width: 1.5),
+            boxShadow: [BoxShadow(color: kPrimaryColor.withOpacity(selected ? 0.15 : 0.06), blurRadius: selected ? 10 : 8, offset: const Offset(0, 2))],
+          ),
           child: Text(
             text,
             maxLines: 1,
@@ -414,7 +445,7 @@ class _ToggleButton extends StatelessWidget {
             style: TextStyle(
               color: selected ? Colors.white : kTextColor,
               fontWeight: FontWeight.bold,
-              fontSize: 16.5,
+              fontSize: 16,
               letterSpacing: 0.1,
             ),
           ),
@@ -477,14 +508,16 @@ class _ExamCardState extends State<_ExamCard> {
   @override
   Widget build(BuildContext context) {
     final exam = widget.exam;
-    // Card with ExpansionTile, NO fixed heights.
-    return Card(
-      elevation: kCardElevation,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(kCardRadius),
-      ),
-      color: Colors.white,
+    return Container(
       margin: EdgeInsets.zero,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(kCardRadius),
+        boxShadow: [
+          BoxShadow(color: kPrimaryColor.withOpacity(0.1), blurRadius: 16, offset: const Offset(0, 6)),
+          BoxShadow(color: kPrimaryColor.withOpacity(0.06), blurRadius: 32, offset: const Offset(0, 12)),
+        ],
+      ),
       child: ExpansionTile(
         key: PageStorageKey('${exam.name}-${exam.className}'),
         initiallyExpanded: false,
@@ -645,27 +678,26 @@ class _ExamActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Avoid fixed width. Use minimal padding.
     return Material(
-      color: kAccentColor.withOpacity(0.14),
-      borderRadius: BorderRadius.circular(24),
+      color: kAccentColor.withOpacity(0.12),
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7.5),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: kAccentColor, size: 18),
-              const SizedBox(width: 6),
+              Icon(icon, color: kAccentColor, size: 20),
+              const SizedBox(width: 8),
               Text(
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: kAccentColor,
-                  fontSize: 13.8,
+                  fontSize: 13.5,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -730,14 +762,16 @@ class _ResultCardState extends State<_ResultCard> {
   @override
   Widget build(BuildContext context) {
     final result = widget.result;
-    // Card with ExpansionTile, NO fixed heights.
-    return Card(
-      elevation: kCardElevation,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(kCardRadius),
-      ),
-      color: Colors.white,
+    return Container(
       margin: EdgeInsets.zero,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(kCardRadius),
+        boxShadow: [
+          BoxShadow(color: kPrimaryColor.withOpacity(0.1), blurRadius: 16, offset: const Offset(0, 6)),
+          BoxShadow(color: kPrimaryColor.withOpacity(0.06), blurRadius: 32, offset: const Offset(0, 12)),
+        ],
+      ),
       child: ExpansionTile(
         key: PageStorageKey('${result.name}-${result.className}'),
         initiallyExpanded: false,
@@ -809,29 +843,34 @@ class _ResultCardState extends State<_ResultCard> {
                     ),
                   ],
                 ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(result.published ? Icons.done : Icons.edit_note,
-                        color: result.published ? kPrimaryColor : kAccentColor,
-                        size: 17),
-                    const SizedBox(width: 3),
-                    Text(
-                      result.published ? 'Published' : 'Draft',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: result.published ? kPrimaryColor : kAccentColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13.5,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: (result.published ? kPrimaryColor : kAccentColor).withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(result.published ? Icons.done_rounded : Icons.edit_note_rounded,
+                          color: result.published ? kPrimaryColor : kAccentColor, size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        result.published ? 'Published' : 'Draft',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: result.published ? kPrimaryColor : kAccentColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12.5,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 11),
-            // Section 6: Result Actions
             _ResultActions(
               published: result.published,
             ),
@@ -898,27 +937,26 @@ class _ResultActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Avoid fixed width. Use minimal padding.
     return Material(
-      color: kAccentColor.withOpacity(0.14),
-      borderRadius: BorderRadius.circular(24),
+      color: kAccentColor.withOpacity(0.12),
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7.5),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: kAccentColor, size: 18),
-              const SizedBox(width: 6),
+              Icon(icon, color: kAccentColor, size: 20),
+              const SizedBox(width: 8),
               Text(
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: kAccentColor,
-                  fontSize: 13.8,
+                  fontSize: 13.5,
                   fontWeight: FontWeight.w600,
                 ),
               ),

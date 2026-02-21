@@ -36,6 +36,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Navigate after 2.5 seconds
     Timer(const Duration(seconds: 3), () {
+      if (!mounted) return;
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => OnboardingScreen()),

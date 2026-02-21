@@ -86,57 +86,35 @@ class _TeacherMyClassesScreenState extends State<TeacherMyClassesScreen> {
     return allClasses.where((c) => c['category'] == type).toList();
   }
 
+  static const Color _kBlue = Color(0xFF023471);
+  static const Color _kGreen = Color(0xFF5AB04B);
+  static const Color _kBg = Color(0xFFF4F6F8);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
-      appBar: AppBar(
-        elevation: 2,
-        backgroundColor: const Color(0xFF023471),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-        centerTitle: true,
-        title: const Text(
-          "My Classes",
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-      // Wrapped with SingleChildScrollView for safe scrolling (OVERFLOW PROTECTION)
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ---------- SECTION 1: Page Intro Card ----------
-              _IntroCard(
+      backgroundColor: _kBg,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _ClassesTopBar(onBack: () => Navigator.of(context).maybePop()),
+                const SizedBox(height: 20),
+                _IntroCard(
                 teacherName: teacherName,
                 totalClasses: allClasses.length,
                 subtitle: subtitle,
-              ),
-              const SizedBox(height: 20),
-
-              // ---------- SECTION 2: Filter Chips ----------
-              Text(
-                "Filter by class type",
-                style: const TextStyle(
-                  color: Color(0xFF023471),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 10),
-              // Use Wrap for filter chips: overflows safely wrap to new line
-              Wrap(
+                const SizedBox(height: 22),
+                const Text(
+                  "Filter by class type",
+                  style: TextStyle(color: Color(0xFF023471), fontWeight: FontWeight.w600, fontSize: 16),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: List.generate(
@@ -168,12 +146,9 @@ class _TeacherMyClassesScreenState extends State<TeacherMyClassesScreen> {
                     },
                   ),
                 ),
-              ),
-              const SizedBox(height: 22),
-
-              // ---------- SECTION 3: Class List ----------
-              // Use shrinkWrap:true, physics:NeverScrollableScrollPhysics on ListView (OVERFLOW PROTECTION)
-              ListView.builder(
+                ),
+                const SizedBox(height: 22),
+                ListView.builder(
                 itemCount: filteredClasses.length,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -186,10 +161,52 @@ class _TeacherMyClassesScreenState extends State<TeacherMyClassesScreen> {
                     ),
                   );
                 },
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ======================= TOP BAR (no color, 3D back) =======================
+class _ClassesTopBar extends StatelessWidget {
+  final VoidCallback onBack;
+
+  const _ClassesTopBar({required this.onBack});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: onBack,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(color: const Color(0xFF023471).withOpacity(0.1), blurRadius: 12, offset: const Offset(0, 4)),
+                ],
+              ),
+              child: const Icon(Icons.arrow_back_rounded, color: Color(0xFF023471), size: 24),
+            ),
+          ),
+          const SizedBox(width: 16),
+          const Expanded(
+            child: Text(
+              "My Classes",
+              style: TextStyle(color: Color(0xFF023471), fontWeight: FontWeight.bold, fontSize: 20),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -210,28 +227,27 @@ class _IntroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Colors.white,
-      elevation: 4,
-      shadowColor: const Color(0xFF5AB04B).withOpacity(0.15),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(color: const Color(0xFF023471).withOpacity(0.1), blurRadius: 16, offset: const Offset(0, 6)),
+          BoxShadow(color: const Color(0xFF023471).withOpacity(0.06), blurRadius: 32, offset: const Offset(0, 12)),
+        ],
       ),
-      // No fixed height
-      child: Padding(
-        padding: const EdgeInsets.all(18.0),
-        child: Row(
-          children: [
-            // Orange accent icon
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF5AB04B).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.all(12),
-              child: const Icon(Icons.school,
-                  color: Color(0xFF5AB04B), size: 32),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF5AB04B).withOpacity(0.12),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [BoxShadow(color: const Color(0xFF5AB04B).withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 3))],
             ),
+            child: const Icon(Icons.school_rounded, color: Color(0xFF5AB04B), size: 28),
+          ),
             const SizedBox(width: 16),
             // Expanded: To ensure overflow safety if text is long
             Expanded(
@@ -274,7 +290,6 @@ class _IntroCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }
@@ -286,30 +301,30 @@ class _ClassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Colors.white,
-      elevation: 3,
-      shadowColor: const Color(0xFF5AB04B).withOpacity(0.08),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(color: const Color(0xFF023471).withOpacity(0.1), blurRadius: 16, offset: const Offset(0, 6)),
+          BoxShadow(color: const Color(0xFF023471).withOpacity(0.06), blurRadius: 32, offset: const Offset(0, 12)),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ----Core details (overflow protection: no fixed width, text limited)----
-            Row(
-              children: [
-                // Orange icon
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF5AB04B).withOpacity(0.13),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.all(8),
-                  child: const Icon(Icons.class_, color: Color(0xFF5AB04B), size: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF5AB04B).withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [BoxShadow(color: const Color(0xFF5AB04B).withOpacity(0.08), blurRadius: 6, offset: const Offset(0, 2))],
                 ),
+                child: const Icon(Icons.class_rounded, color: Color(0xFF5AB04B), size: 24),
+              ),
                 const SizedBox(width: 12),
                 // Expanded Column INSIDE Row (overflow protection)
                 Expanded(
@@ -368,14 +383,12 @@ class _ClassCard extends StatelessWidget {
             // ---------- SECTION 4: Class Actions (overflow-safe wrap) ----------
             _ClassActions(),
 
-            // ---------- SECTION 5: Expandable Details ----------
             Padding(
               padding: const EdgeInsets.only(top: 10.0),
               child: _ClassExpansionDetails(classData: classData),
             ),
           ],
         ),
-      ),
     );
   }
 }

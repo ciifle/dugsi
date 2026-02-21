@@ -28,6 +28,7 @@ class DummyUser {
       'id': id,
       'email': email,
       'name': name,
+      'password': password,
       'role': role.toString().split('.').last,
       'phone': phone,
       'schoolId': schoolId,
@@ -39,8 +40,8 @@ class DummyUser {
     return DummyUser(
       id: json['id'],
       email: json['email'],
-      password: '', // Password not stored in session usually
       name: json['name'],
+      password: json['password'] as String? ?? '',
       role: UserRole.values.firstWhere(
         (e) => e.toString().split('.').last == json['role'],
         orElse: () => UserRole.student,

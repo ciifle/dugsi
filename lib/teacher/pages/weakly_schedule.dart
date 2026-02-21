@@ -11,7 +11,7 @@ class _TeacherWeeklyScheduleScreenState extends State<TeacherWeeklyScheduleScree
   // Brand colors
   static const Color kPrimary = Color(0xFF023471);
   static const Color kAccent = Color(0xFF5AB04B);
-  static const Color kBackground = Color(0xFFF9FAFB);
+  static const Color kBackground = Color(0xFFF4F6F8);
   static const Color kTextDark = Color(0xFF023471);
 
   final List<String> daysOfWeek = [
@@ -91,30 +91,15 @@ class _TeacherWeeklyScheduleScreenState extends State<TeacherWeeklyScheduleScree
 
     return Scaffold(
       backgroundColor: kBackground,
-      appBar: AppBar(
-        title: const Text(
-          'Weekly Schedule',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            overflow: TextOverflow.ellipsis,
-            fontFamily: null,
-          ),
-          maxLines: 1,
-        ),
-        backgroundColor: kPrimary,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
-        elevation: 2.0,
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Day selector chips
+                _WeeklyScheduleTopBar(onBack: () => Navigator.of(context).maybePop()),
+                const SizedBox(height: 20),
                 Text(
                   "Select Day",
                   style: TextStyle(
@@ -207,6 +192,49 @@ class _TeacherWeeklyScheduleScreenState extends State<TeacherWeeklyScheduleScree
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ======================= TOP BAR (no color, 3D back) =======================
+class _WeeklyScheduleTopBar extends StatelessWidget {
+  final VoidCallback onBack;
+
+  const _WeeklyScheduleTopBar({required this.onBack});
+
+  static const Color _kBlue = Color(0xFF023471);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: onBack,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(color: _kBlue.withOpacity(0.1), blurRadius: 12, offset: const Offset(0, 4)),
+                ],
+              ),
+              child: Icon(Icons.arrow_back_rounded, color: _kBlue, size: 24),
+            ),
+          ),
+          const SizedBox(width: 16),
+          const Expanded(
+            child: Text(
+              'Weekly Schedule',
+              style: TextStyle(color: Color(0xFF023471), fontWeight: FontWeight.bold, fontSize: 20),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }

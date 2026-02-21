@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 // =============================
 // COLOR CONSTANTS
 // =============================
-const Color kPrimaryColor = Color(0xFF023471); // Dark Blue
-const Color kAccentColor = Color(0xFF5AB04B);  // Orange
-const Color kBackgroundColor = Colors.white;
+const Color kPrimaryColor = Color(0xFF023471);
+const Color kAccentColor = Color(0xFF5AB04B);
+const Color kBackgroundColor = Color(0xFFF4F6F8);
 const Color kTextColor = Color(0xFF023471);
+const double kCardRadius = 24.0;
 
 enum NotificationType { system, classes, exams }
 
@@ -93,39 +94,17 @@ class _TeacherNotificationsScreenState extends State<TeacherNotificationsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: kPrimaryColor,
-        elevation: 2,
-        centerTitle: true,
-        title: Text(
-          'Notifications',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            // To ensure single line
-            overflow: TextOverflow.ellipsis,
-            fontSize: 20,
-          ),
-          maxLines: 1,
-        ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.of(context).maybePop();
-          },
-        ),
-      ),
-      body: SingleChildScrollView(
-        // ==== OVERFLOW SAFETY: vertical scroll only ====
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // =============================
-              // SECTION 1: FILTER CHIPS
-              // =============================
-              Text(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _NotificationsTopBar(onBack: () => Navigator.of(context).maybePop()),
+                const SizedBox(height: 20),
+                // ============================= FILTER CHIPS =============================
+                Text(
                 "Filter",
                 style: TextStyle(
                   fontSize: 16,
@@ -135,8 +114,8 @@ class _TeacherNotificationsScreenState extends State<TeacherNotificationsScreen>
                 ),
                 maxLines: 1,
               ),
-              SizedBox(height: 8),
-              Wrap(
+                const SizedBox(height: 8),
+                Wrap(
                 spacing: 8,
                 runSpacing: 4,
                 children: filters
@@ -167,13 +146,9 @@ class _TeacherNotificationsScreenState extends State<TeacherNotificationsScreen>
                           ),
                         ))
                     .toList(),
-              ),
-              SizedBox(height: 18),
-
-              // =============================
-              // SECTION 2: NOTIFICATION LIST
-              // =============================
-              Text(
+                ),
+                const SizedBox(height: 20),
+                Text(
                 "Notifications",
                 style: TextStyle(
                   fontSize: 18,
@@ -182,17 +157,16 @@ class _TeacherNotificationsScreenState extends State<TeacherNotificationsScreen>
                   overflow: TextOverflow.ellipsis,
                 ),
                 maxLines: 1,
-              ),
-              SizedBox(height: 8),
-              // Using ListView with shrinkWrap and never scrollable for overflow safety
-              ListView.builder(
+                ),
+                const SizedBox(height: 12),
+                ListView.builder(
                 shrinkWrap: true, // MANDATORY for scroll-in-column
-                physics: NeverScrollableScrollPhysics(), // prevent nested scroll
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount: _filteredNotifications.length,
                 itemBuilder: (context, index) {
                   final notification = _filteredNotifications[index];
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 14.0),
+                    padding: const EdgeInsets.only(bottom: 16.0),
                     child: NotificationCard(
                       notification: notification,
                       onMarkAsRead: () {
@@ -208,9 +182,8 @@ class _TeacherNotificationsScreenState extends State<TeacherNotificationsScreen>
                     ),
                   );
                 },
-              ),
-              // If no notifications
-              if (_filteredNotifications.isEmpty)
+                ),
+                if (_filteredNotifications.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 48),
                   child: Center(
@@ -225,7 +198,8 @@ class _TeacherNotificationsScreenState extends State<TeacherNotificationsScreen>
                     ),
                   ),
                 ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -233,9 +207,48 @@ class _TeacherNotificationsScreenState extends State<TeacherNotificationsScreen>
   }
 }
 
-// =============================
-// Data Model
-// =============================
+// ============================= TOP BAR (no color, 3D back) =============================
+class _NotificationsTopBar extends StatelessWidget {
+  final VoidCallback onBack;
+
+  const _NotificationsTopBar({required this.onBack});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: onBack,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(color: kPrimaryColor.withOpacity(0.1), blurRadius: 12, offset: const Offset(0, 4)),
+                ],
+              ),
+              child: Icon(Icons.arrow_back_rounded, color: kPrimaryColor, size: 24),
+            ),
+          ),
+          const SizedBox(width: 16),
+          const Expanded(
+            child: Text(
+              'Notifications',
+              style: TextStyle(color: kTextColor, fontWeight: FontWeight.bold, fontSize: 20),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================= Data Model =============================
 class NotificationItem {
   final String title;
   final String message;
@@ -294,16 +307,21 @@ class NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // === OVERFLOW SAFETY: Never fixed heights/widths, always wrap ===
     return Material(
-      borderRadius: BorderRadius.circular(16),
-      elevation: 2,
-      color: Colors.white,
+      color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(kCardRadius),
         onTap: notification.read ? null : onMarkAsRead,
-        child: Padding(
-          padding: const EdgeInsets.all(14.0),
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(kCardRadius),
+            boxShadow: [
+              BoxShadow(color: kPrimaryColor.withOpacity(0.1), blurRadius: 16, offset: const Offset(0, 6)),
+              BoxShadow(color: kPrimaryColor.withOpacity(0.06), blurRadius: 32, offset: const Offset(0, 12)),
+            ],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -311,20 +329,20 @@ class NotificationCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Type icon + badge
                   Container(
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: _typeIconBg(notification.type),
                       shape: BoxShape.circle,
+                      boxShadow: [BoxShadow(color: kPrimaryColor.withOpacity(0.12), blurRadius: 8, offset: const Offset(0, 3))],
                     ),
-                    padding: EdgeInsets.all(8),
                     child: Icon(
                       getIcon(notification.type),
-                      color: Colors.white,
+                          color: Colors.white,
                       size: 22,
                     ),
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   // Title + date
                   Expanded(
                     child: Column(

@@ -6,7 +6,7 @@ class TeacherTodayClassesScreen extends StatelessWidget {
   // BRAND COLORS
   static const Color _kPrimaryColor = Color(0xFF023471);
   static const Color _kAccentColor = Color(0xFF5AB04B);
-  static const Color _kBgColor = Colors.white;
+  static const Color _kBgColor = Color(0xFFF4F6F8);
 
   // Dummy data for exactly 2 classes
   final List<_ClassCardData> _classes = const [
@@ -53,31 +53,16 @@ class TeacherTodayClassesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _kBgColor,
-      appBar: AppBar(
-        backgroundColor: _kPrimaryColor,
-        elevation: 2,
-        centerTitle: true,
-        title: const Text(
-          "Today's Classes",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
-            overflow: TextOverflow.ellipsis,
-          ),
-          maxLines: 1,
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: SingleChildScrollView(
-        // Absolute safety: vertical scrolling prevents any overflow
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // SECTION 1: DAY SUMMARY CARD
-              _DaySummaryCard(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _TodayClassesTopBar(onBack: () => Navigator.of(context).maybePop()),
+                const SizedBox(height: 20),
+                _DaySummaryCard(
                 teacherName: teacherName,
                 date: _todayDate(),
                 totalClasses: _classes.length,
@@ -96,10 +81,54 @@ class TeacherTodayClassesScreen extends StatelessWidget {
                     ),
                   );
                 },
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ======================= TOP BAR (no color, 3D back) =======================
+class _TodayClassesTopBar extends StatelessWidget {
+  final VoidCallback onBack;
+
+  const _TodayClassesTopBar({required this.onBack});
+
+  static const Color _kBlue = Color(0xFF023471);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: onBack,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(color: _kBlue.withOpacity(0.1), blurRadius: 12, offset: const Offset(0, 4)),
+                ],
+              ),
+              child: Icon(Icons.arrow_back_rounded, color: _kBlue, size: 24),
+            ),
+          ),
+          const SizedBox(width: 16),
+          const Expanded(
+            child: Text(
+              "Today's Classes",
+              style: TextStyle(color: Color(0xFF023471), fontWeight: FontWeight.bold, fontSize: 20),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }

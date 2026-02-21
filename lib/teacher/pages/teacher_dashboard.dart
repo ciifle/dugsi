@@ -12,38 +12,29 @@ import 'package:kobac/teacher/pages/teacher_day_classes.dart';
 import 'package:kobac/teacher/pages/teacher_exams.dart';
 import 'package:kobac/teacher/pages/teacher_profile.dart';
 import 'package:kobac/teacher/pages/weakly_schedule.dart';
-import 'package:kobac/teacher/pages/notifications.dart'; // <- Import for notifications screen
+import 'package:kobac/teacher/pages/notifications.dart';
 import 'package:kobac/services/local_auth_service.dart';
 
-// =======================
-//  BRAND COLORS (STRICT)
-// =======================
-const Color _kPrimaryColor = Color(0xFF023471); // Dark Blue
-const Color _kAccentColor = Color(0xFF5AB04B); // Orange
-const Color _kBGColor = Color(0xFFF8F9FA); // Very Light Gray
+// ======================= BRAND COLORS =======================
+const Color _kPrimaryBlue = Color(0xFF023471);
+const Color _kPrimaryGreen = Color(0xFF5AB04B);
+const Color _kBg = Color(0xFFF4F6F8);
+const double _kRadius = 24.0;
+const double _kPadding = 20.0;
 
-/// Teacher Dashboard screen with:
-/// - Redesigned layout: Modern, clean card sections
-/// - Notification on AppBar (with badge)
-/// - Absolutely NO layout overflows (tested small screens)
-/// - Text style + spacing controlled everywhere
-/// - All lists are contained, sized, never scroll within other scrolls
 class TeacherDashboardScreen extends StatelessWidget {
   TeacherDashboardScreen({Key? key}) : super(key: key);
 
-  // ---- Dummy/app demo data ----
   final Map<String, String> teacher = const {
     'name': "Mr. Imran Yusuf",
     'role': "Mathematics Teacher",
-    'avatarUrl': "", // fallback
+    'avatarUrl': "",
   };
 
-  final int totalClasses = 5;
-  final int todayClasses = 2;
-  final int totalStudents = 143;
-  final int pendingTasks = 3;
-
   final int notificationCount = 3;
+  final int todayClassesCount = 2;
+  final int pendingAttendanceCount = 1;
+  final int marksToEnterCount = 3;
 
   final List<Map<String, String>> todaysClasses = const [
     {
@@ -64,173 +55,103 @@ class TeacherDashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String todayStr = _formatDate(DateTime.now());
     final double width = MediaQuery.of(context).size.width;
-    final bool isSmallScreen = width < 410;
+    final bool isSmall = width < 380;
 
     return Scaffold(
-      backgroundColor: _kBGColor,
-      appBar: AppBar(
-        backgroundColor: _kPrimaryColor,
-        elevation: 1.6,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Teacher Dashboard',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-            overflow: TextOverflow.ellipsis,
-          ),
-          maxLines: 1,
-        ),
-        actions: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.notifications_rounded,
-                  color: Colors.white,
-                  size: 27,
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => TeacherNotificationsScreen(),
-                    ),
-                  );
-                },
-              ),
-              if (notificationCount > 0)
-                Positioned(
-                  top: 10,
-                  right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: _kAccentColor,
-                      shape: BoxShape.circle,
-                      border: Border.all(width: 1.3, color: Colors.white),
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 14,
-                      minHeight: 14,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '$notificationCount',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 9.3,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
+      backgroundColor: _kBg,
       drawer: _TeacherDrawer(teacher: teacher),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (ctx, constraints) => SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 14.0,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(_kPadding, _kPadding, _kPadding, 10),
+                child: Row(
+                  children: [
+                    Builder(
+                      builder: (context) => _NeuIconButton(
+                        icon: Icons.menu_rounded,
+                        onTap: () => Scaffold.of(context).openDrawer(),
+                      ),
+                    ),
+                    const Spacer(),
+                    const SizedBox(width: 12),
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        _NeuIconButton(
+                          icon: Icons.notifications_outlined,
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TeacherNotificationsScreen())),
+                          iconColor: Colors.white,
+                          backgroundColor: _kPrimaryBlue,
+                        ),
+                        if (notificationCount > 0)
+                          Positioned(
+                            top: -2,
+                            right: -2,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(color: _kPrimaryGreen, shape: BoxShape.circle),
+                              constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                              child: Center(child: Text('$notificationCount', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _RedesignedHeader(
-                    teacher: teacher,
-                    today: todayStr,
-                    isSmall: isSmallScreen,
-                  ),
-                  const SizedBox(height: 18),
-                  _SummaryStatsGridAdaptive(
-                    totalClasses: totalClasses,
-                    totalStudents: totalStudents,
-                    todayClasses: todayClasses,
-                    pendingTasks: pendingTasks,
-                    isSmall: isSmallScreen,
-                  ),
-                  const SizedBox(height: 24),
-                  _QuickActionsSectionRedesigned(isSmall: isSmallScreen),
-                  const SizedBox(height: 25),
-                  _TodaysClassesSectionRedesigned(
-                    classes: todaysClasses,
-                    isSmall: isSmallScreen,
-                  ),
-                ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: _kPadding, vertical: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Welcome back,", style: TextStyle(fontSize: 16, color: _kPrimaryBlue.withOpacity(0.6), fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 4),
+                    Text(teacher['name'] ?? "Teacher", style: const TextStyle(fontSize: 26, color: _kPrimaryBlue, fontWeight: FontWeight.bold, letterSpacing: -0.5)),
+                  ],
+                ),
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: _kPadding, vertical: 6),
+                child: _SummaryGrid(
+                  todayClasses: todayClassesCount,
+                  pendingAttendance: pendingAttendanceCount,
+                  marksToEnter: marksToEnterCount,
+                  recentActivity: 5,
+                  isSmall: isSmall,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: _kPadding),
+                child: _SectionTitle(title: "Today's Classes"),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: _kPadding),
+                child: _TodaysClassesCards(classes: todaysClasses, isSmall: isSmall),
+              ),
+              const SizedBox(height: 100),
+            ],
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.white,
-        elevation: 4.0,
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => MessageScreen(),
-            ),
-          );
-        },
-        child: SizedBox(
-          width: 34,
-          height: 34,
-          child: Icon(
-            Icons.chat_bubble_outline,
-            color: Color(0xFF5AB04B),
-            size: 26,
-          ),
-        ),
-      ),
+      floatingActionButton: _FAB(),
     );
   }
 
-  String _formatDate(DateTime date) {
-    final weekdays = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-    final months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    final dayName = weekdays[date.weekday - 1];
-    final monthName = months[date.month - 1];
-    return '$dayName, ${date.day} $monthName ${date.year}';
+  String _formatDate(DateTime d) {
+    const w = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const m = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    return '${w[d.weekday - 1]}, ${d.day} ${m[d.month - 1]} ${d.year}';
   }
 }
 
-// =======
-// DRAWER
-// =======
+// ======================= DRAWER =======================
 class _TeacherDrawer extends StatelessWidget {
   final Map<String, String> teacher;
 
@@ -239,133 +160,31 @@ class _TeacherDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      backgroundColor: Colors.white,
       child: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _DrawerHeader(teacher: teacher),
             Expanded(
               child: ListView(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(vertical: 6),
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                 children: [
-                  _DrawerItem(
-                    icon: Icons.dashboard_rounded,
-                    label: 'Dashboard',
-                    onTap: () => Navigator.pop(context),
-                  ),
-                  _DrawerItem(
-                    icon: Icons.class_rounded,
-                    label: 'My Classes',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TeacherMyClassesScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _DrawerItem(
-                    icon: Icons.people_rounded,
-                    label: 'Students',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              TeacherStudentManagementScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _DrawerItem(
-                    icon: Icons.assignment_turned_in_rounded,
-                    label: 'Attendance',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TeacherAttendanceScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _DrawerItem(
-                    icon: Icons.assignment_outlined,
-                    label: 'Assignments',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TeacherAssignmentsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _DrawerItem(
-                    icon: Icons.quiz_rounded,
-                    label: 'Quizzes',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TeacherQuizzesScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _DrawerItem(
-                    icon: Icons.assessment_rounded,
-                    label: 'Exams & Results',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TeacherExamsResultsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _DrawerItem(
-                    icon: Icons.campaign_rounded,
-                    label: 'Notices',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TeacherNoticesScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _DrawerItem(
-                    icon: Icons.account_circle_rounded,
-                    label: 'Profile',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TeacherProfileScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  const Divider(),
-                  _DrawerItem(
-                    icon: Icons.logout_rounded,
-                    label: 'Logout',
-                    onTap: () async {
-                      await LocalAuthService().logout();
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => LoginPage(),
-                        ),
-                      );
-                    },
-                  ),
+                  _DrawerTile(icon: Icons.dashboard_rounded, label: 'Dashboard', isActive: true, onTap: () => Navigator.pop(context)),
+                  _DrawerTile(icon: Icons.class_rounded, label: 'My Classes', onTap: () => _nav(context, TeacherMyClassesScreen())),
+                  _DrawerTile(icon: Icons.people_rounded, label: 'Students', onTap: () => _nav(context, TeacherStudentManagementScreen())),
+                  _DrawerTile(icon: Icons.assignment_turned_in_rounded, label: 'Attendance', onTap: () => _nav(context, TeacherAttendanceScreen())),
+                  _DrawerTile(icon: Icons.assignment_outlined, label: 'Assignments', onTap: () => _nav(context, TeacherAssignmentsScreen())),
+                  _DrawerTile(icon: Icons.quiz_rounded, label: 'Quizzes', onTap: () => _nav(context, TeacherQuizzesScreen())),
+                  _DrawerTile(icon: Icons.assessment_rounded, label: 'Exams & Results', onTap: () => _nav(context, TeacherExamsResultsScreen())),
+                  _DrawerTile(icon: Icons.campaign_rounded, label: 'Notices', onTap: () => _nav(context, TeacherNoticesScreen())),
+                  _DrawerTile(icon: Icons.account_circle_rounded, label: 'Profile', onTap: () => _nav(context, TeacherProfileScreen())),
+                  const Divider(height: 24),
+                  _DrawerTile(icon: Icons.logout_rounded, label: 'Logout', onTap: () async {
+                    await LocalAuthService().logout();
+                    if (context.mounted) {
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LoginPage()));
+                    }
+                  }),
                 ],
               ),
             ),
@@ -374,77 +193,66 @@ class _TeacherDrawer extends StatelessWidget {
       ),
     );
   }
+
+  void _nav(BuildContext context, Widget screen) {
+    Navigator.pop(context);
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+  }
 }
 
 class _DrawerHeader extends StatelessWidget {
   final Map<String, String> teacher;
+
   const _DrawerHeader({required this.teacher});
 
   @override
   Widget build(BuildContext context) {
-    final String initials = _getInitials(teacher['name'] ?? '');
+    final parts = (teacher['name'] ?? '').trim().split(RegExp(r'\s+')).where((e) => e.isNotEmpty);
+    final initials = parts.isEmpty ? '' : parts.take(2).map((e) => e[0]).join().toUpperCase();
+
     return Container(
-      color: _kPrimaryColor,
-      padding: const EdgeInsets.symmetric(vertical: 26, horizontal: 16),
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 28, 20, 24),
+      decoration: const BoxDecoration(
+        color: _kPrimaryBlue,
+        borderRadius: BorderRadius.only(bottomRight: Radius.circular(28)),
+      ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 27,
-            backgroundColor: Colors.white,
-            child: (teacher['avatarUrl']?.isEmpty ?? true)
-                ? Text(
-                    initials,
-                    style: const TextStyle(
-                      color: _kPrimaryColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 23,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    maxLines: 1,
-                  )
-                : ClipOval(
-                    child: Image.network(
-                      teacher['avatarUrl']!,
-                      width: 54,
-                      height: 54,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Text(
-                        initials,
-                        style: const TextStyle(
-                          color: _kPrimaryColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 23,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        maxLines: 1,
-                      ),
-                    ),
-                  ),
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(color: _kPrimaryBlue.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 4)),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                initials.isEmpty ? 'T' : initials,
+                style: const TextStyle(color: _kPrimaryBlue, fontWeight: FontWeight.bold, fontSize: 22),
+              ),
+            ),
           ),
-          const SizedBox(width: 13),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   teacher['name'] ?? '',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 17),
                   maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 4),
                 Text(
                   teacher['role'] ?? '',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13.3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 13),
                   maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -453,309 +261,157 @@ class _DrawerHeader extends StatelessWidget {
       ),
     );
   }
-
-  String _getInitials(String name) {
-    final n = name
-        .trim()
-        .split(RegExp(r'\s+'))
-        .where((e) => e.isNotEmpty)
-        .toList();
-    if (n.isEmpty) return "";
-    if (n.length == 1) return n[0][0].toUpperCase();
-    return (n[0][0] + n.last[0]).toUpperCase();
-  }
 }
 
-class _DrawerItem extends StatelessWidget {
+class _DrawerTile extends StatelessWidget {
   final IconData icon;
   final String label;
+  final bool isActive;
   final VoidCallback? onTap;
-  const _DrawerItem({required this.icon, required this.label, this.onTap});
+
+  const _DrawerTile({required this.icon, required this.label, this.isActive = false, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: _kAccentColor, size: 25),
-      horizontalTitleGap: 15,
-      title: Text(
-        label,
-        style: const TextStyle(
-          color: _kPrimaryColor,
-          fontWeight: FontWeight.w600,
-          fontSize: 15.5,
-          overflow: TextOverflow.ellipsis,
-        ),
-        maxLines: 1,
-      ),
-      onTap: onTap ?? () {},
-      contentPadding: const EdgeInsets.symmetric(horizontal: 17, vertical: 1),
-      dense: false,
-    );
-  }
-}
-
-// ================================
-//   Redesigned DASHBOARD HEADER
-// ================================
-class _RedesignedHeader extends StatelessWidget {
-  final Map<String, String> teacher;
-  final String today;
-  final bool isSmall;
-  const _RedesignedHeader({
-    required this.teacher,
-    required this.today,
-    required this.isSmall,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: Colors.white,
-      elevation: 2.2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              radius: isSmall ? 22 : 28,
-              backgroundColor: _kPrimaryColor,
-              child: Text(
-                (teacher['name'] ?? '').trim().isNotEmpty
-                    ? (teacher['name']!
-                          .trim()
-                          .split(' ')
-                          .map((e) => e.isNotEmpty ? e[0] : '')
-                          .take(2)
-                          .join()
-                          .toUpperCase())
-                    : '',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: isSmall ? 19 : 21,
-                  overflow: TextOverflow.ellipsis,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Material(
+        color: isActive ? _kPrimaryBlue.withOpacity(0.08) : Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: isActive ? Border.all(color: _kPrimaryBlue.withOpacity(0.3), width: 1) : null,
+            ),
+            child: Row(
+              children: [
+                Icon(icon, size: 24, color: isActive ? _kPrimaryBlue : _kPrimaryBlue.withOpacity(0.7)),
+                const SizedBox(width: 16),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isActive ? _kPrimaryBlue : _kPrimaryBlue.withOpacity(0.9),
+                    fontWeight: isActive ? FontWeight.bold : FontWeight.w600,
+                    fontSize: 15,
+                  ),
                 ),
-                maxLines: 1,
-              ),
-            ),
-            const SizedBox(width: 13),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    teacher['name'] ?? '',
-                    style: TextStyle(
-                      color: _kPrimaryColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: isSmall ? 15.7 : 18.5,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    maxLines: 1,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    teacher['role'] ?? '',
-                    style: TextStyle(
-                      color: Colors.black87,
-                      fontSize: isSmall ? 13 : 14.5,
-                      fontWeight: FontWeight.w500,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    maxLines: 1,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    today,
-                    style: TextStyle(
-                      color: _kPrimaryColor,
-                      fontWeight: FontWeight.w400,
-                      fontSize: isSmall ? 12.3 : 14,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    maxLines: 1,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "All systems operational. Have a great teaching day!",
-                    style: TextStyle(
-                      color: _kPrimaryColor,
-                      fontSize: isSmall ? 12 : 13.1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    maxLines: 2,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ====================
-//  Redesigned SUMMARY STAT GRID
-// ====================
-class _SummaryStatsGridAdaptive extends StatelessWidget {
-  final int totalClasses;
-  final int totalStudents;
-  final int todayClasses;
-  final int pendingTasks;
-  final bool isSmall;
-
-  const _SummaryStatsGridAdaptive({
-    required this.totalClasses,
-    required this.totalStudents,
-    required this.todayClasses,
-    required this.pendingTasks,
-    required this.isSmall,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // Adaptive card grid, never overflows
-    final List<Widget> stats = [
-      _StatCardRedesigned(
-        icon: Icons.class_rounded,
-        label: "Total\nClasses",
-        count: totalClasses,
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => TeacherMyClassesScreen()),
-          );
-        },
-      ),
-      _StatCardRedesigned(
-        icon: Icons.people_rounded,
-        label: "Total\nStudents",
-        count: totalStudents,
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TeacherStudentManagementScreen(),
-            ),
-          );
-        },
-      ),
-      _StatCardRedesigned(
-        icon: Icons.assignment_turned_in_rounded,
-        label: "Exams &\nResults",
-        count: todayClasses,
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TeacherExamsResultsScreen(),
-            ),
-          );
-        },
-      ),
-      _StatCardRedesigned(
-        icon: Icons.calendar_today_rounded,
-        label: "Weekly\nSchedule",
-        count:
-            pendingTasks, // You may wish to replace this with a schedule count if available
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TeacherWeeklyScheduleScreen(),
-            ),
-          );
-        },
-      ),
-    ];
-
-    return Row(
-      children: [
-        Expanded(
-          child: Wrap(
-            spacing: 11,
-            runSpacing: 13,
-            children: List.generate(
-              stats.length,
-              (i) => SizedBox(
-                width:
-                    (MediaQuery.of(context).size.width - (isSmall ? 60 : 48)) /
-                    2,
-                child: stats[i],
-              ),
+              ],
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }
 
-class _StatCardRedesigned extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final int count;
-  final VoidCallback? onTap;
+// ======================= 3D SUMMARY GRID =======================
+class _SummaryGrid extends StatelessWidget {
+  final int todayClasses;
+  final int pendingAttendance;
+  final int marksToEnter;
+  final int recentActivity;
+  final bool isSmall;
 
-  const _StatCardRedesigned({
-    required this.icon,
-    required this.label,
-    required this.count,
-    this.onTap,
+  const _SummaryGrid({
+    required this.todayClasses,
+    required this.pendingAttendance,
+    required this.marksToEnter,
+    required this.recentActivity,
+    required this.isSmall,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      elevation: 1.4,
-      borderRadius: BorderRadius.circular(13),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(13),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = (constraints.maxWidth - 14) / 2;
+        return Wrap(
+          spacing: 14,
+          runSpacing: 14,
+          children: [
+            _SummaryCard3D(
+              icon: Icons.schedule_rounded,
+              title: "Today's Classes",
+              value: todayClasses.toString(),
+              color: _kPrimaryBlue,
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TeacherTodayClassesScreen())),
+            ),
+            _SummaryCard3D(
+              icon: Icons.assignment_turned_in_rounded,
+              title: "Pending Attendance",
+              value: pendingAttendance.toString(),
+              color: _kPrimaryGreen,
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TeacherAttendanceScreen())),
+            ),
+            _SummaryCard3D(
+              icon: Icons.edit_note_rounded,
+              title: "Marks to Enter",
+              value: marksToEnter.toString(),
+              color: Colors.orange,
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TeacherExamsResultsScreen())),
+            ),
+            _SummaryCard3D(
+              icon: Icons.history_rounded,
+              title: "Recent Activity",
+              value: recentActivity.toString(),
+              color: Colors.deepPurple,
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TeacherWeeklyScheduleScreen())),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SummaryCard3D extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+  final Color color;
+  final VoidCallback? onTap;
+
+  const _SummaryCard3D({required this.icon, required this.title, required this.value, required this.color, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: (MediaQuery.of(context).size.width - _kPadding * 2 - 14) / 2,
+      child: GestureDetector(
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(_kRadius),
+            boxShadow: [
+              BoxShadow(color: color.withOpacity(0.18), offset: const Offset(0, 8), blurRadius: 18),
+              BoxShadow(color: _kPrimaryBlue.withOpacity(0.06), offset: const Offset(0, 14), blurRadius: 28),
+            ],
+          ),
+          child: Stack(
             children: [
-              Container(
-                decoration: const BoxDecoration(
-                  color: _kAccentColor,
-                  shape: BoxShape.circle,
-                ),
-                padding: const EdgeInsets.all(7.3),
-                child: Icon(icon, color: Colors.white, size: 20),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
+              Positioned(right: -8, top: -8, child: Icon(icon, size: 72, color: color.withOpacity(0.06))),
+              Padding(
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "$count",
-                      style: const TextStyle(
-                        color: _kPrimaryColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 17.3,
-                        overflow: TextOverflow.ellipsis,
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(14),
                       ),
-                      maxLines: 1,
+                      child: Icon(icon, color: color, size: 24),
                     ),
-                    const SizedBox(height: 1),
-                    Text(
-                      label,
-                      style: const TextStyle(
-                        color: _kPrimaryColor,
-                        fontWeight: FontWeight.normal,
-                        fontSize: 13.1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      maxLines: 2,
-                    ),
+                    const SizedBox(height: 16),
+                    Text(value, style: const TextStyle(color: _kPrimaryBlue, fontWeight: FontWeight.bold, fontSize: 26)),
+                    const SizedBox(height: 4),
+                    Text(title, style: TextStyle(fontSize: 14, color: _kPrimaryBlue.withOpacity(0.6), fontWeight: FontWeight.w500), maxLines: 2, overflow: TextOverflow.ellipsis),
                   ],
                 ),
               ),
@@ -767,316 +423,95 @@ class _StatCardRedesigned extends StatelessWidget {
   }
 }
 
-// =========================
-//  Redesigned QUICK ACTIONS
-// =========================
-class _QuickActionsSectionRedesigned extends StatelessWidget {
-  final bool isSmall;
-  const _QuickActionsSectionRedesigned({required this.isSmall});
+// ======================= TODAY'S CLASSES =======================
+class _SectionTitle extends StatelessWidget {
+  final String title;
+
+  const _SectionTitle({required this.title});
 
   @override
   Widget build(BuildContext context) {
-    final actions = [
-      {
-        "icon": Icons.how_to_reg_rounded,
-        "label": "Take\nAttendance",
-        "onTap": () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TeacherAttendanceScreen(),
-            ),
-          );
-        },
-      },
-      {
-        "icon": Icons.assignment_turned_in_rounded,
-        "label": "Create\nAssignment",
-        "onTap": () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TeacherAssignmentsScreen(),
-            ),
-          );
-        },
-      },
-      {
-        "icon": Icons.quiz_rounded,
-        "label": "Create\nQuiz",
-        "onTap": () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TeacherQuizzesScreen(),
-            ),
-          );
-        },
-      },
-      {
-        "icon": Icons.campaign_rounded,
-        "label": "Publish\nNotice",
-        "onTap": () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TeacherNoticesScreen(),
-            ),
-          );
-        },
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Quick Actions",
-          style: TextStyle(
-            color: _kPrimaryColor,
-            fontWeight: FontWeight.bold,
-            fontSize: 16.3,
-            overflow: TextOverflow.ellipsis,
-          ),
-          maxLines: 1,
-        ),
-        const SizedBox(height: 10),
-        Wrap(
-          spacing: 12,
-          runSpacing: 13,
-          children: actions.map((action) {
-            return SizedBox(
-              width:
-                  (MediaQuery.of(context).size.width - (isSmall ? 60 : 54)) / 2,
-              child: _QuickActionCardRedesigned(
-                icon: action['icon'] as IconData,
-                label: action['label'] as String,
-                isSmall: isSmall,
-                onTap: action['onTap'] as VoidCallback,
-              ),
-            );
-          }).toList(),
-        ),
-      ],
+    return Text(
+      title,
+      style: const TextStyle(color: _kPrimaryBlue, fontWeight: FontWeight.bold, fontSize: 18),
     );
   }
 }
 
-class _QuickActionCardRedesigned extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isSmall;
-  final VoidCallback? onTap;
-  const _QuickActionCardRedesigned({
-    required this.icon,
-    required this.label,
-    required this.isSmall,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      elevation: 1.2,
-      borderRadius: BorderRadius.circular(11),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(11),
-        onTap: onTap,
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            vertical: isSmall ? 11 : 14,
-            horizontal: 11,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: _kAccentColor, size: isSmall ? 20 : 21.7),
-              const SizedBox(width: 7.5),
-              Flexible(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: _kPrimaryColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: isSmall ? 13.5 : 14.7,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  maxLines: 2,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ============================
-//  Redesigned TODAY'S CLASSES
-// ============================
-class _TodaysClassesSectionRedesigned extends StatelessWidget {
+class _TodaysClassesCards extends StatelessWidget {
   final List<Map<String, String>> classes;
   final bool isSmall;
-  const _TodaysClassesSectionRedesigned({
-    required this.classes,
-    required this.isSmall,
-  });
+
+  const _TodaysClassesCards({required this.classes, required this.isSmall});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Today's Classes",
-          style: TextStyle(
-            color: _kPrimaryColor,
-            fontWeight: FontWeight.bold,
-            fontSize: 16.2,
-            overflow: TextOverflow.ellipsis,
+    if (classes.isEmpty) {
+      return _Card3D(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: Text("You have no classes scheduled for today.", style: TextStyle(color: _kPrimaryBlue.withOpacity(0.8), fontSize: 15)),
           ),
-          maxLines: 1,
         ),
-        const SizedBox(height: 10),
-        if (classes.isEmpty)
-          const Card(
-            color: Colors.white,
-            elevation: 1.2,
-            margin: EdgeInsets.only(bottom: 8),
-            child: Padding(
-              padding: EdgeInsets.all(14),
-              child: Text(
-                "You have no classes scheduled for today.",
-                style: TextStyle(
-                  color: _kPrimaryColor,
-                  fontSize: 14,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                maxLines: 2,
-              ),
-            ),
-          ),
-        ...List.generate(classes.length, (i) {
-          final cl = classes[i];
-          return _ClassCardExpandableRedesigned(
-            className: cl['className'] ?? '',
-            subject: cl['subject'] ?? '',
-            time: cl['time'] ?? '',
-            notes: cl['notes'],
-            syllabus: cl['syllabus'],
-            isSmall: isSmall,
-          );
-        }),
-      ],
+      );
+    }
+    return Column(
+      children: classes.map((c) => Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: _ClassCard3D(
+          className: c['className'] ?? '',
+          subject: c['subject'] ?? '',
+          time: c['time'] ?? '',
+          notes: c['notes'],
+          syllabus: c['syllabus'],
+        ),
+      )).toList(),
     );
   }
 }
 
-class _ClassCardExpandableRedesigned extends StatelessWidget {
+class _ClassCard3D extends StatelessWidget {
   final String className;
   final String subject;
   final String time;
   final String? notes;
   final String? syllabus;
-  final bool isSmall;
 
-  const _ClassCardExpandableRedesigned({
-    required this.className,
-    required this.subject,
-    required this.time,
-    this.notes,
-    this.syllabus,
-    required this.isSmall,
-  });
+  const _ClassCard3D({required this.className, required this.subject, required this.time, this.notes, this.syllabus});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Colors.white,
-      elevation: 1.3,
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return _Card3D(
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6),
-          childrenPadding: const EdgeInsets.symmetric(
-            horizontal: 13,
-            vertical: 7,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          backgroundColor: Colors.white,
-          initiallyExpanded: false,
+          tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          childrenPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_kRadius)),
           title: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                decoration: const BoxDecoration(
-                  color: _kAccentColor,
-                  shape: BoxShape.circle,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: _kPrimaryGreen.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                padding: const EdgeInsets.all(5.5),
-                child: const Icon(
-                  Icons.schedule_rounded,
-                  color: Colors.white,
-                  size: 18,
-                ),
+                child: const Icon(Icons.schedule_rounded, color: _kPrimaryGreen, size: 22),
               ),
-              const SizedBox(width: 9),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      className,
-                      style: TextStyle(
-                        color: _kPrimaryColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: isSmall ? 14.3 : 15.3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      maxLines: 1,
-                    ),
-                    Text(
-                      subject,
-                      style: TextStyle(
-                        color: _kPrimaryColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: isSmall ? 12.7 : 13.2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      maxLines: 1,
-                    ),
+                    Text(className, style: const TextStyle(color: _kPrimaryBlue, fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(subject, style: TextStyle(color: _kPrimaryBlue.withOpacity(0.85), fontSize: 14)),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(
-                          Icons.access_time_rounded,
-                          color: _kAccentColor,
-                          size: 15,
-                        ),
-                        const SizedBox(width: 3),
-                        Flexible(
-                          child: Text(
-                            time,
-                            style: TextStyle(
-                              color: _kPrimaryColor,
-                              fontSize: isSmall ? 11.2 : 12.2,
-                              fontWeight: FontWeight.normal,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            maxLines: 1,
-                          ),
-                        ),
+                        Icon(Icons.access_time_rounded, size: 16, color: _kPrimaryGreen),
                         const SizedBox(width: 6),
-                        const Icon(
-                          Icons.wifi_rounded,
-                          color: _kPrimaryColor,
-                          size: 13.5,
-                        ),
+                        Text(time, style: TextStyle(color: _kPrimaryBlue.withOpacity(0.7), fontSize: 12)),
                       ],
                     ),
                   ],
@@ -1085,64 +520,105 @@ class _ClassCardExpandableRedesigned extends StatelessWidget {
             ],
           ),
           children: [
-            if ((notes?.trim().isNotEmpty ?? false) ||
-                (syllabus?.trim().isNotEmpty ?? false))
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (notes != null && notes!.trim().isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 3),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.note_alt_outlined,
-                            size: 17,
-                            color: _kAccentColor,
-                          ),
-                          const SizedBox(width: 7),
-                          Flexible(
-                            child: Text(
-                              notes ?? '',
-                              style: TextStyle(
-                                color: _kPrimaryColor,
-                                fontSize: isSmall ? 12.0 : 13.0,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              maxLines: 2,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  if (syllabus != null && syllabus!.trim().isNotEmpty)
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.menu_book_rounded,
-                          size: 17,
-                          color: _kAccentColor,
-                        ),
-                        const SizedBox(width: 7),
-                        Flexible(
-                          child: Text(
-                            "Syllabus: ${syllabus ?? ''}",
-                            style: TextStyle(
-                              color: _kPrimaryColor,
-                              fontSize: isSmall ? 11.7 : 12.2,
-                              fontWeight: FontWeight.normal,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            maxLines: 2,
-                          ),
-                        ),
-                      ],
-                    ),
-                ],
-              ),
+            if ((notes ?? '').trim().isNotEmpty) _DetailRow(icon: Icons.note_alt_outlined, text: notes!),
+            if ((syllabus ?? '').trim().isNotEmpty) _DetailRow(icon: Icons.menu_book_rounded, text: 'Syllabus: $syllabus'),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _DetailRow({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: _kPrimaryGreen),
+          const SizedBox(width: 10),
+          Expanded(child: Text(text, style: TextStyle(color: _kPrimaryBlue.withOpacity(0.85), fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis)),
+        ],
+      ),
+    );
+  }
+}
+
+// ======================= SHARED 3D CARD =======================
+class _Card3D extends StatelessWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+
+  const _Card3D({required this.child, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(_kRadius),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(_kRadius),
+            boxShadow: [
+              BoxShadow(color: _kPrimaryBlue.withOpacity(0.1), blurRadius: 16, offset: const Offset(0, 6)),
+              BoxShadow(color: _kPrimaryBlue.withOpacity(0.06), blurRadius: 32, offset: const Offset(0, 12)),
+            ],
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+// ======================= NEUMORPHIC ICON BUTTON (like admin) =======================
+class _NeuIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final Color? iconColor;
+  final Color? backgroundColor;
+
+  const _NeuIconButton({required this.icon, required this.onTap, this.iconColor, this.backgroundColor});
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = backgroundColor ?? Colors.white;
+    final iconClr = iconColor ?? _kPrimaryBlue;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(color: _kPrimaryBlue.withOpacity(0.1), blurRadius: 12, offset: const Offset(0, 4)),
+          ],
+        ),
+        child: Icon(icon, color: iconClr, size: 24),
+      ),
+    );
+  }
+}
+
+class _FAB extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return FloatingActionButton(
+      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => MessageScreen())),
+      backgroundColor: Colors.white,
+      elevation: 8,
+      child: const Icon(Icons.chat_bubble_rounded, color: _kPrimaryGreen, size: 28),
     );
   }
 }

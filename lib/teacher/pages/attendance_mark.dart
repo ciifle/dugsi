@@ -1,25 +1,23 @@
 import 'package:flutter/material.dart';
 
-// ================== BRAND COLORS ====================
-const Color kPrimaryDarkBlue = Color(0xFF023471);
-const Color kAccentOrange = Color(0xFF5AB04B);
-const Color kBackground = Color(0xFFF9F9F9);
-const Color kTextDarkBlue = Color(0xFF023471);
+// ======================= BRAND COLORS =======================
+const Color _kPrimaryBlue = Color(0xFF023471);
+const Color _kPrimaryGreen = Color(0xFF5AB04B);
+const Color _kBg = Color(0xFFF4F6F8);
+const double _kRadius = 24.0;
+const double _kPadding = 20.0;
 
-// ================== DATA MODEL ======================
 class StudentAttendance {
   final String name;
   final String roll;
   StudentAttendance({required this.name, required this.roll});
 }
 
-// ================== MAIN SCREEN =====================
 class TeacherAttendanceScreen extends StatefulWidget {
   const TeacherAttendanceScreen({Key? key}) : super(key: key);
 
   @override
-  State<TeacherAttendanceScreen> createState() =>
-      _TeacherAttendanceScreenState();
+  State<TeacherAttendanceScreen> createState() => _TeacherAttendanceScreenState();
 }
 
 class _TeacherAttendanceScreenState extends State<TeacherAttendanceScreen> {
@@ -54,217 +52,291 @@ class _TeacherAttendanceScreenState extends State<TeacherAttendanceScreen> {
   String _formatDate(DateTime date) =>
       "${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}";
 
+  void _submit() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Attendance saved successfully!', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        backgroundColor: _kPrimaryGreen,
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kBackground,
-      appBar: AppBar(
-        title: const Text(
-          "Attendance Marking",
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 19.5,
-              color: Colors.white,
-              letterSpacing: 0.2),
-        ),
-        centerTitle: true,
-        backgroundColor: kPrimaryDarkBlue,
-        elevation: 1.5,
-        automaticallyImplyLeading: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-      ),
+      backgroundColor: _kBg,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        child: Column(
+          children: [
+            Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(_kPadding, 16, _kPadding, 24),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _HeaderCard(
+                  _TopBar(title: 'Take Attendance', onBack: () => Navigator.of(context).maybePop()),
+                  const SizedBox(height: 20),
+                  _SessionCard(
                     className: className,
                     date: attendanceDate,
                     studentCount: students.length,
                   ),
                   const SizedBox(height: 22),
-                  Expanded(
-                    child: ListView.separated(
-                      itemCount: students.length,
-                      separatorBuilder: (context, idx) => const SizedBox(height: 10),
-                      itemBuilder: (context, idx) {
-                        final student = students[idx];
-                        final present = isPresent[idx];
-                        return _StudentAttendanceCard(
-                          name: student.name,
-                          roll: student.roll,
-                          present: present,
-                          onChanged: (val) {
-                            setState(() => isPresent[idx] = val);
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 460),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text(
-                                  'Attendance saved successfully!',
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white),
-                                ),
-                                backgroundColor: kAccentOrange,
-                                duration: const Duration(seconds: 2),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(11),
-                                ),
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: kAccentOrange,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 2,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            textStyle: const TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 16),
-                            shadowColor: kAccentOrange.withOpacity(0.16),
-                          ),
-                          child: const Text(
-                            "Save Attendance",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                color: Colors.white,
-                                letterSpacing: 0.2,
-                                fontSize: 16.4,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
+                  ...List.generate(students.length, (idx) {
+                    final s = students[idx];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _StudentCard(
+                        name: s.name,
+                        roll: s.roll,
+                        present: isPresent[idx],
+                        onChanged: (val) => setState(() => isPresent[idx] = val),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
+                  const SizedBox(height: 100),
                 ],
               ),
-            );
-          },
+            ),
+          ),
+            _SubmitBar(onSubmit: _submit),
+          ],
         ),
       ),
     );
   }
 }
 
-// ================== HEADER CARD =====================
-class _HeaderCard extends StatelessWidget {
+// ======================= TOP BAR (no color, like admin) =======================
+class _TopBar extends StatelessWidget {
+  final String title;
+  final VoidCallback onBack;
+
+  const _TopBar({required this.title, required this.onBack});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: onBack,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(color: _kPrimaryBlue.withOpacity(0.1), blurRadius: 12, offset: const Offset(0, 4)),
+                ],
+              ),
+              child: Icon(Icons.arrow_back_rounded, color: _kPrimaryBlue, size: 24),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(color: _kPrimaryBlue, fontWeight: FontWeight.bold, fontSize: 20),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ======================= ELEVATED SESSION CARD =======================
+class _SessionCard extends StatelessWidget {
   final String className;
   final DateTime date;
   final int studentCount;
-  const _HeaderCard({
-    required this.className,
-    required this.date,
-    required this.studentCount,
-    Key? key,
-  }) : super(key: key);
+
+  const _SessionCard({required this.className, required this.date, required this.studentCount});
 
   String get _formattedDate =>
       "${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}";
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 500),
-        child: Card(
-          color: Colors.white,
-          elevation: 2.5,
-          shadowColor: kPrimaryDarkBlue.withOpacity(0.10),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 17, horizontal: 23),
-            child: Row(
+    return Container(
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(_kRadius),
+        boxShadow: [
+          BoxShadow(color: _kPrimaryBlue.withOpacity(0.12), blurRadius: 18, offset: const Offset(0, 6)),
+          BoxShadow(color: _kPrimaryBlue.withOpacity(0.06), blurRadius: 36, offset: const Offset(0, 14)),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        className,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 19.4,
-                          color: kPrimaryDarkBlue,
-                          letterSpacing: 0.03,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Icon(Icons.calendar_today,
-                              color: kAccentOrange, size: 16.5),
-                          const SizedBox(width: 5),
-                          Text(
-                            _formattedDate,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: kTextDarkBlue,
-                              fontSize: 14.2,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.01,
-                            ),
-                          ),
-                        ],
-                      )
-                    ],
+                Text(
+                  className,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: _kPrimaryBlue,
                   ),
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: kAccentOrange.withOpacity(0.10),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.group,
-                          color: kAccentOrange, size: 17.4),
-                      const SizedBox(width: 5),
-                      Text(
-                        "Students: $studentCount",
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: kAccentOrange,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14.5,
-                        ),
-                      ),
-                    ],
-                  ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Icon(Icons.calendar_today_rounded, color: _kPrimaryGreen, size: 18),
+                    const SizedBox(width: 8),
+                    Text(_formattedDate, style: TextStyle(color: _kPrimaryBlue.withOpacity(0.85), fontSize: 14, fontWeight: FontWeight.w500)),
+                  ],
                 ),
               ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: _kPrimaryGreen.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.people_rounded, color: _kPrimaryGreen, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  "$studentCount",
+                  style: const TextStyle(color: _kPrimaryGreen, fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ======================= STUDENT ROW WITH SEGMENTED PRESENT/ABSENT =======================
+class _StudentCard extends StatelessWidget {
+  final String name;
+  final String roll;
+  final bool present;
+  final ValueChanged<bool> onChanged;
+
+  const _StudentCard({required this.name, required this.roll, required this.present, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(color: _kPrimaryBlue.withOpacity(0.1), blurRadius: 14, offset: const Offset(0, 5)),
+          BoxShadow(color: _kPrimaryBlue.withOpacity(0.05), blurRadius: 24, offset: const Offset(0, 10)),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: _kPrimaryBlue.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [BoxShadow(color: _kPrimaryBlue.withOpacity(0.06), blurRadius: 6, offset: const Offset(0, 2))],
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              roll,
+              style: const TextStyle(fontWeight: FontWeight.bold, color: _kPrimaryBlue, fontSize: 16),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              name,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: _kPrimaryBlue),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          _SegmentControl(present: present, onChanged: onChanged),
+        ],
+      ),
+    );
+  }
+}
+
+class _SegmentControl extends StatelessWidget {
+  final bool present;
+  final ValueChanged<bool> onChanged;
+
+  const _SegmentControl({required this.present, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _kPrimaryBlue.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _SegmentChip(
+            label: 'Present',
+            selected: present,
+            isGreen: true,
+            onTap: () => onChanged(true),
+          ),
+          _SegmentChip(
+            label: 'Absent',
+            selected: !present,
+            isGreen: false,
+            onTap: () => onChanged(false),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SegmentChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final bool isGreen;
+  final VoidCallback onTap;
+
+  const _SegmentChip({required this.label, required this.selected, required this.isGreen, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isGreen ? _kPrimaryGreen : Colors.redAccent;
+    return Material(
+      color: selected ? color : Colors.transparent,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: selected ? Colors.white : _kPrimaryBlue.withOpacity(0.8),
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
             ),
           ),
         ),
@@ -273,112 +345,51 @@ class _HeaderCard extends StatelessWidget {
   }
 }
 
-// ============== STUDENT ATTENDANCE CARD ==============
-class _StudentAttendanceCard extends StatelessWidget {
-  final String name;
-  final String roll;
-  final bool present;
-  final ValueChanged<bool> onChanged;
-  const _StudentAttendanceCard({
-    Key? key,
-    required this.name,
-    required this.roll,
-    required this.present,
-    required this.onChanged,
-  }) : super(key: key);
+// ======================= STICKY BOTTOM SUBMIT (GREEN GRADIENT) =======================
+class _SubmitBar extends StatelessWidget {
+  final VoidCallback onSubmit;
+
+  const _SubmitBar({required this.onSubmit});
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 500),
-      child: Card(
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(_kPadding, 16, _kPadding, 16 + MediaQuery.of(context).padding.bottom),
+      decoration: BoxDecoration(
         color: Colors.white,
-        elevation: 1.8,
-        shadowColor: kPrimaryDarkBlue.withOpacity(0.09),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: kAccentOrange.withOpacity(0.16),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  roll,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: kAccentOrange,
-                    fontSize: 17.5,
-                  ),
-                ),
+        boxShadow: [
+          BoxShadow(color: _kPrimaryBlue.withOpacity(0.06), blurRadius: 12, offset: const Offset(0, -4)),
+        ],
+      ),
+      child: Material(
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: onSubmit,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: const LinearGradient(
+                colors: [_kPrimaryGreen, Color(0xFF4A9E3E)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              const SizedBox(width: 13),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16.6,
-                        color: kTextDarkBlue,
-                        letterSpacing: 0.01,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          present ? Icons.check_circle : Icons.cancel,
-                          color: present
-                              ? const Color(0xFF199E36)
-                              : const Color(0xFFC8262F),
-                          size: 16,
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          present ? "Present" : "Absent",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13.7,
-                            color: present
-                                ? const Color(0xFF199E36)
-                                : const Color(0xFFC8262F),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+              boxShadow: [
+                BoxShadow(color: _kPrimaryGreen.withOpacity(0.35), blurRadius: 12, offset: const Offset(0, 4)),
+              ],
+            ),
+            child: const Text(
+              "Save Attendance",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 17,
               ),
-              const SizedBox(width: 10),
-              // New: Only a single tickable Checkbox for attendance.
-              Checkbox(
-                value: present,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                activeColor: kAccentOrange,
-                checkColor: Colors.white,
-                side: BorderSide(color: kAccentOrange, width: 2),
-                onChanged: (checked) {
-                  if (checked != null) {
-                    onChanged(checked);
-                  }
-                },
-              ),
-            ],
+            ),
           ),
         ),
       ),

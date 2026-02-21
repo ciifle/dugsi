@@ -88,4 +88,25 @@ class LocalAuthService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_userKey, jsonEncode(user.toJson()));
   }
+
+  /// Returns true if password was changed, false if current password is wrong.
+  Future<bool> changePassword(String currentPassword, String newPassword) async {
+    final user = await getCurrentUser();
+    if (user == null || user.password != currentPassword) return false;
+    final index = _dummyUsers.indexWhere((u) => u.id == user.id);
+    if (index == -1) return false;
+    final updated = DummyUser(
+      id: user.id,
+      email: user.email,
+      password: newPassword,
+      name: user.name,
+      role: user.role,
+      phone: user.phone,
+      schoolId: user.schoolId,
+      emisNumber: user.emisNumber,
+    );
+    _dummyUsers[index] = updated;
+    await _saveSession(updated);
+    return true;
+  }
 }
